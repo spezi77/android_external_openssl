@@ -82,7 +82,7 @@ extern "C" {
 #define DEVRANDOM "/dev/urandom","/dev/random","/dev/srandom"
 #endif
 #ifndef DEVRANDOM_EGD
-/* set this to a comma-seperated list of 'egd' sockets to try out. These
+/* set this to a comma-separated list of 'egd' sockets to try out. These
  * sockets will be tried in the order listed in case accessing the device files
  * listed in DEVRANDOM did not return enough entropy. */
 #define DEVRANDOM_EGD "/var/run/egd-pool","/dev/egd-pool","/etc/egd-pool","/etc/entropy"
@@ -367,6 +367,13 @@ static unsigned int _strlen31(const char *str)
 #  else
 #    define DEFAULT_HOME  "C:"
 #  endif
+
+/* Avoid Windows 8 SDK GetVersion deprecated problems */
+#if defined(_MSC_VER) && _MSC_VER>=1800
+#  define check_winnt() (1)
+#else
+#  define check_winnt() (GetVersion() < 0x80000000)
+#endif
 
 #else /* The non-microsoft world */
 
@@ -725,6 +732,22 @@ struct servent *getservbyname(const char *name, const char *proto);
 #include <OS.h>
 #endif
 
+#if !defined(inline) && !defined(__cplusplus)
+# if defined(__STDC_VERSION__) && __STDC_VERSION__>=199901L
+   /* do nothing, inline works */
+# elif defined(__GNUC__) && __GNUC__>=3 && !defined(__NO_INLINE__)
+   /* do nothing, inline works */
+# elif defined(_MSC_VER)
+  /*
+   * Visual Studio: inline is available in C++ only, however
+   * __inline is available for C, see
+   * http://msdn.microsoft.com/en-us/library/z8y1yy88.aspx
+   */
+#  define inline __inline
+# else
+#  define inline
+# endif
+#endif
 
 #ifdef  __cplusplus
 }
